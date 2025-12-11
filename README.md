@@ -147,36 +147,45 @@
 
 대화 요약 데이터셋을 분석한 결과, \*\*길이(Length)\*\*와 **주제(Topic)** 측면에서 심각한 불균형을 확인했습니다.
 
-#### 1\. Length Distribution (길이 분포)
-<img width="1790" height="985" alt="image" src="https://github.com/user-attachments/assets/b35cd08c-8f9f-4910-80c0-a524f6777a5c" />
+#### 1. Length Distribution (길이 분포)
+<p align="center">
+  <img width="80%" src="https://github.com/user-attachments/assets/b35cd08c-8f9f-4910-80c0-a524f6777a5c" />
+</p>
 
-  * **Dialogue (대화문):** 평균 **406자**. 대부분 200\~600자 사이에 분포하지만, 최대 **2,000자 이상**인 Long-tail 데이터가 존재하여 긴 문맥 처리가 중요함.
-  * **Summary (요약문):** 평균 **86자**. 대부분 50\~150자로 짧고 매우 정제된 형태를 띰.
-  * **Insight:** "길게 읽고(Encoder) 짧게 압축하는(Decoder)" 능력과, 1024 토큰 이상의 긴 시퀀스 처리가 성능의 핵심.
+* **Dialogue (대화문):** 평균 **406자**. 대부분 200~600자 사이에 분포하지만, 최대 **2,000자 이상**인 Long-tail 데이터가 존재하여 긴 문맥 처리가 중요함.
+* **Summary (요약문):** 평균 **86자**. 대부분 50~150자로 짧고 매우 정제된 형태를 띰.
+* **Insight:** "길게 읽고(Encoder) 짧게 압축하는(Decoder)" 능력과, 1024 토큰 이상의 긴 시퀀스 처리가 성능의 핵심.
 
-#### 2\. Topic Imbalance (주제 불균형)
-<img width="383" height="275" alt="image" src="https://github.com/user-attachments/assets/176f2563-3a4c-401d-a7ca-581e9b70002b" />
+#### 2. Topic Imbalance (주제 불균형)
+<p align="center">
+  <img width="60%" src="https://github.com/user-attachments/assets/176f2563-3a4c-401d-a7ca-581e9b70002b" />
+</p>
 
-  * **Train vs Dev:** Train과 Dev 데이터셋 간의 \*\*Topic 중복률이 31%\*\*에 불과함 (149개만 겹침).
-  * **Minor Topics:** 특정 주제(음식 주문 등)에 편향되어 있으며, 데이터가 5개 미만인 희귀 주제가 다수 존재.
-  * **Insight:** 단순히 주제를 암기하는 방식은 Dev 셋에서 성능이 하락함. 주제 정보(Topic)를 모델 입력에서 제외하고, 일반화 능력을 키우는 전략 채택.
+* **Train vs Dev:** Train과 Dev 데이터셋 간의 **Topic 중복률이 31%**에 불과함 (149개만 겹침).
+* **Minor Topics:** 특정 주제(음식 주문 등)에 편향되어 있으며, 데이터가 5개 미만인 희귀 주제가 다수 존재.
+* **Insight:** 단순히 주제를 암기하는 방식은 Dev 셋에서 성능이 하락함. 주제 정보(Topic)를 모델 입력에서 제외하고, 일반화 능력을 키우는 전략 채택.
 
-## 4\. Preprocessing Strategy
+## 4. Preprocessing Strategy
 
 ### 🧹 Text Cleaning & Normalization
 
 한국어 구어체 특유의 노이즈를 제거하고 모델이 의미를 파악하기 쉽도록 정규화를 수행했습니다.
-<img width="197" height="274" alt="image" src="https://github.com/user-attachments/assets/18aee896-2be4-4e42-b4c5-6d5687ea3a1c" />
 
-  * **감정 표현 정규화:** `ㅎㅎ`, `ㅋㅋ` 등의 자음 남발을 `웃기다`와 같은 의미 있는 단어로 치환-AI-부트캠프-16기NLP경진대회-발표.pptx.pdf].
-  * **특수문자 및 공백 처리:** 불필요한 반복 문자(`!!!`, `...`) 축소 및 이중 공백 제거 (`fix_korean_spacing.py`).
-  * **Special Tokens:** `#Person1#`, `#PhoneNumber#` 등 화자 및 주요 엔티티 태그를 보존하여 모델이 핵심 정보를 놓치지 않도록 처리.
+<p align="center">
+  <img width="40%" src="https://github.com/user-attachments/assets/18aee896-2be4-4e42-b4c5-6d5687ea3a1c" />
+</p>
+
+* **감정 표현 정규화:** `ㅎㅎ`, `ㅋㅋ` 등의 자음 남발을 `웃기다`와 같은 의미 있는 단어로 치환.
+* **특수문자 및 공백 처리:** 불필요한 반복 문자(`!!!`, `...`) 축소 및 이중 공백 제거 (`fix_korean_spacing.py`).
+* **Special Tokens:** `#Person1#`, `#PhoneNumber#` 등 화자 및 주요 엔티티 태그를 보존하여 모델이 핵심 정보를 놓치지 않도록 처리.
 
 ### 🔢 Tokenizer Efficiency
-<img width="213" height="164" alt="image" src="https://github.com/user-attachments/assets/bd183dd6-a1d4-4e0f-a549-19abc9e71eb2" />
+<p align="center">
+  <img width="40%" src="https://github.com/user-attachments/assets/bd183dd6-a1d4-4e0f-a549-19abc9e71eb2" />
+</p>
 
-  * **KoBART vs mBART:** KoBART는 영어 이름(예: `Christine`)을 `['C', 'h', 'r', '...']`로 과도하게 분절(5 tokens)하는 반면, mBART는 `['Christine']`(1 token)으로 효율적으로 처리함-AI-부트캠프-16기NLP경진대회-발표.pptx.pdf].
-  * **Decision:** 번역체 데이터 특성상 영어/한국어가 혼용되므로 **mBART-50 Tokenizer** 채택.
+* **KoBART vs mBART:** KoBART는 영어 이름(예: `Christine`)을 `['C', 'h', 'r', '...']`로 과도하게 분절(5 tokens)하는 반면, mBART는 `['Christine']`(1 token)으로 효율적으로 처리함.
+* **Decision:** 번역체 데이터 특성상 영어/한국어가 혼용되므로 **mBART-50 Tokenizer** 채택.
 
 ## 5\. Modeling
 
