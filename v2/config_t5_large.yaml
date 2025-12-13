@@ -1,0 +1,84 @@
+# ===============================================================
+# General settings (ROUGE 최적화)
+# ===============================================================
+general:
+  data_dir: "../../data/processed"
+  train_file: "v2_train_preprocessed.csv"
+  test_file: "v2_test_preprocessed.csv"
+
+  model_name: "paust/pko-t5-large"
+  output_dir: "../outputs/t5_v2_large/"
+  seed: 42
+
+  prefix: "summarize dialogue: "
+
+# ===============================================================
+# Tokenizer settings
+# ===============================================================
+tokenizer:
+  encoder_max_len: 768
+  decoder_max_len: 100
+  special_tokens: []
+
+# ===============================================================
+# Training settings
+# ===============================================================
+training:
+  optim: adamw_torch
+  do_train: true
+  do_eval: false
+
+  num_train_epochs: 4
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 16
+
+  # ❗️ learning_rate 제거 (Optuna가 관리)
+  # learning_rate: 3e-5    ← 삭제됨
+
+  warmup_ratio: 0.05
+  weight_decay: 0.01
+  lr_scheduler_type: cosine
+
+  logging_steps: 100
+  save_strategy: "epoch"
+  save_total_limit: 1
+  load_best_model_at_end: false
+
+  fp16: false
+  bf16: true
+  predict_with_generate: true
+
+# ===============================================================
+# Optuna settings
+# ===============================================================
+optuna:
+  use: true
+  n_trials: 3
+  direction: maximize
+
+  search_space:
+    # 문자열(e-표기) 대신 명시적 float literal
+    learning_rate: [0.00003, 0.00005]
+    warmup_ratio: [0.05, 0.1, 0.15]
+    num_train_epochs: [3, 4]
+
+# ===============================================================
+# Inference settings
+# ===============================================================
+inference:
+  num_beams: 5
+  max_length: 100
+  no_repeat_ngram_size: 3
+  batch_size: 4
+
+  remove_tokens:
+    - "<pad>"
+
+# ===============================================================
+# wandb settings
+# ===============================================================
+wandb:
+  project: fastcampus_text_generation_with_transformer
+  entity: milpasoomin-no
+  name: "v2_t5_large"
+  mode: online

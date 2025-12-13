@@ -1,0 +1,110 @@
+# ===============================================================
+# General settings (ROUGE 최적화)
+# ===============================================================
+general:
+  data_dir: "../../data/processed"
+  train_file: "v1_train_preprocessed.csv"
+  test_file: "v1_test_preprocessed.csv"
+
+  model_name: "paust/pko-t5-large"
+  output_dir: "../outputs/t5_v1_large/"
+  seed: 42
+
+  prefix: "summarize dialogue: "
+
+
+# ===============================================================
+# Tokenizer settings
+# ===============================================================
+tokenizer:
+  encoder_max_len: 512
+  decoder_max_len: 100
+
+  special_tokens:
+    - "<speaker1>"
+    - "<speaker2>"
+    - "<speaker3>"
+    - "<Doctor>"
+    - "<Male>"
+    - "<MarriedFemale>"
+    - "<Female>"
+    - "<YoungFemale>"
+    - "<OlderBrother>"
+    - "<OlderSister>"
+    - "<Mister>"
+    - "<Madam>"
+    - "<Boss>"
+    - "<Customer>"
+    - "<Patient>"
+    - "<Driver>"
+    - "<Counselor>"
+    - "<Nurse>"
+    - "<Professor>"
+
+
+# ===============================================================
+# Training settings (T5-large 안정 세팅)
+# ===============================================================
+training:
+  optim: adamw_torch
+  do_train: true
+  do_eval: false
+
+  num_train_epochs: 4
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 4   # effective batch = 8
+
+  learning_rate: 5e-5
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+
+  lr_scheduler_type: cosine
+
+  logging_steps: 100
+  save_strategy: "epoch"
+  save_total_limit: 1
+  load_best_model_at_end: false
+
+  fp16: false         # ❗ 반드시 꺼야 함 (bf16과 충돌)
+  bf16: true          # ✓ Ampere에서 최적 설정
+  predict_with_generate: true
+
+
+# ===============================================================
+# Optuna settings
+# ===============================================================
+optuna:
+  use: true
+  n_trials: 2          # ← 우리가 합의한 최종 설정
+  direction: maximize
+
+  search_space:
+    learning_rate: [3e-5, 5e-5]
+    warmup_ratio: [0.05, 0.1, 0.15]
+    num_train_epochs: [3, 4]
+
+
+# ===============================================================
+# Inference settings
+# ===============================================================
+inference:
+  num_beams: 4
+  max_length: 100
+  no_repeat_ngram_size: 2
+  batch_size: 2
+
+  remove_tokens:
+    - "<pad>"
+    - "<speaker1>"
+    - "<speaker2>"
+    - "<speaker3>"
+
+
+# ===============================================================
+# wandb settings
+# ===============================================================
+wandb:
+  project: fastcampus_text_generation_with_transformer
+  entity: milpasoomin-no
+  name: "v1_t5_large"
+  mode: online

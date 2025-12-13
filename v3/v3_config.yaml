@@ -1,0 +1,111 @@
+# ===============================================================
+# General settings
+# ===============================================================
+general:
+  data_dir: "../../data/processed"
+  train_file: "v3_train_preprocessed.csv"
+  dev_file: "v3_dev_preprocessed.csv"
+  test_file: "v3_test_preprocessed.csv"
+
+  model_name: "gogamza/kobart-base-v2"
+  output_dir: "../outputs/v3_kobart"
+
+  # 🔥 외부 루프에서 고정 시드 반복
+  seed_list: [42, 2025, 7, 11, 55]
+
+  # KoBART에서 가장 안정적인 prefix
+  prefix: "요약: "
+
+# ===============================================================
+# Tokenizer settings
+# ===============================================================
+tokenizer:
+  encoder_max_len: 512
+
+  # 🔥 decoder_max_len & inference max_length 반드시 일치
+  decoder_max_len: 128
+
+  special_tokens:
+    - "#Person1#"
+    - "#Person2#"
+    - "#Person3#"
+
+# ===============================================================
+# Training settings (LoRA)
+# ===============================================================
+training:
+  use_lora: true
+  load_in_4bit: false
+
+  # 🔥 KoBART 안정 조합 — fc1, fc2 제거 (반복/환각 증가 방지)
+  lora_target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - out_proj
+
+  per_device_train_batch_size: 16
+  gradient_accumulation_steps: 2
+
+  optim: adamw_torch
+  weight_decay: 0.01
+  lr_scheduler_type: cosine
+
+  # 🔥 optuna warmup_ratio와 충돌 방지 → 기본값만 남김 (trial이 override)
+  warmup_ratio: 0.03
+
+  logging_steps: 50
+  save_strategy: "epoch"
+  save_total_limit: 2
+  load_best_model_at_end: true
+
+  fp16: true
+  bf16: false
+  predict_with_generate: true
+
+  # 🔥 generate 시 train/eval 길이 통합 (끊김 해결)
+  generation_max_length: 128
+
+# ===============================================================
+# Optuna settings
+# ===============================================================
+optuna:
+  use: true
+  n_trials: 3
+  direction: maximize
+
+  search_space:
+    learning_rate: [2e-5, 7e-5]
+    lora_r: [8, 16, 32]
+    lora_alpha: [16, 32, 64]
+    lora_dropout: [0.0, 0.05, 0.1]
+    warmup_ratio: [0.03, 0.06, 0.1]
+    num_train_epochs: [4, 5, 6]
+
+# ===============================================================
+# Inference settings
+# ===============================================================
+inference:
+  num_beams: 4
+
+  # 🔥 train과 동일하게 통일해야 repetition/끊김 문제가 사라짐
+  max_length: 128
+
+  no_repeat_ngram_size: 3
+  batch_size: 4
+
+  remove_tokens:
+    - "<pad>"
+    - "<unk>"
+    - "##"
+    - "#Pesson"
+    - "#Peron"
+
+# ===============================================================
+# wandb settings
+# ===============================================================
+wandb:
+  project: kobart_dialogue_summarization_v3
+  entity: milpasoomin-no
+  name: "v3_kobart_optuna"
+  mode: online

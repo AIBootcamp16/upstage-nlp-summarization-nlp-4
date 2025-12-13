@@ -1,0 +1,52 @@
+# v5_config.yaml (대장 버전 그대로 사용 가능, 주석만 참고)
+
+general:
+  data_dir: ../../data/raw
+  train_file: train.csv
+  dev_file: dev.csv
+  test_file: test.csv
+  output_dir: ../outputs/v5
+  seed: 42
+  base_model: gogamza/kobart-base-v1   # or digit82/kobart
+
+tokenizer:
+  use_pretrained: true
+  tokenizer_path: null
+  vocab_size: 4000
+
+noise:
+  normalize_newline: true
+  normalize_br: true
+  normalize_speaker: true
+  clean_punctuation: true
+  strip_whitespace: true
+
+pretrain:
+  use_pretrain: true
+  epochs: 10
+  batch_size: 32
+  lr: 2e-4
+  min_lr: 1e-5         # (지금은 사용 안 하지만 남겨둠)
+  warmup_ratio: 0.05
+  max_seq_len: 256
+  masking_ratio: 0.3
+  shuffle_utterance: true   # (PretrainDataset 안에서 random.shuffle 사용)
+
+finetune:
+  method: r3f        # [default, r3f]
+  epochs: 10
+  batch_size: 32
+  lr: 2e-4
+  min_lr: 1e-5
+  warmup_ratio: 0.05
+  max_input_len: 256
+  max_target_len: 64
+  r3f_lambda: 1.0
+  all_dropout: 0.1
+
+inference:
+  batch_size: 64
+  max_target_len: 64
+  num_beams: 4
+  length_penalty: 1.2
+  device: cuda

@@ -1,0 +1,80 @@
+# ===============================================================
+# Version 4 — KoBART Dialogue Summarization
+# ===============================================================
+
+general:
+  data_dir: "../../data/processed"
+  train_file: "v4_train_preprocessed.csv"
+  dev_file: "v4_dev_preprocessed.csv"
+  test_file: "v4_test_preprocessed.csv"
+
+  model_name: "gogamza/kobart-base-v2"
+  output_dir: "../outputs/v4_kobart"
+
+  seed_list: [42, 7, 11, 2025]
+
+  prefix: "다음 대화를 최대 3문장으로 요약하라: "
+
+tokenizer:
+  encoder_max_len: 512
+  decoder_max_len: 96
+  special_tokens:
+    - "#Person1#"
+    - "#Person2#"
+    - "#Person3#"
+    - "#Person4#"
+    - "#Person5#"
+
+training:
+  use_lora: false
+  load_in_4bit: false
+
+  per_device_train_batch_size: 8
+  gradient_accumulation_steps: 4
+
+  optim: adamw_torch
+  weight_decay: 0.01
+  lr_scheduler_type: cosine
+  warmup_ratio: 0.03
+
+  logging_steps: 50
+  save_strategy: "epoch"
+  save_total_limit: 2
+  load_best_model_at_end: true
+
+  fp16: true
+  bf16: false
+  predict_with_generate: true
+
+  # 🔥 train/eval/inference 디코딩 통일
+  generation_max_length: 40
+  generation_num_beams: 1
+  generation_no_repeat_ngram_size: 3
+  generation_length_penalty: 2.0
+
+optuna:
+  use: true
+  n_trials: 4
+  direction: maximize
+  search_space:
+    learning_rate: [2e-5, 5e-5]
+    warmup_ratio: [0.03, 0.06]
+    num_train_epochs: [4, 5, 6]
+
+inference:
+  num_beams: 1
+  max_new_tokens: 40
+  length_penalty: 2.0
+  no_repeat_ngram_size: 3
+  remove_tokens:
+    - "<pad>"
+    - "<unk>"
+    - "##"
+    - "#Pesson"
+    - "#Peron"
+
+wandb:
+  project: kobart_dialogue_summarization_v4
+  entity: milpasoomin-no
+  name: "v4_kobart_optuna"
+  mode: online
